@@ -37,25 +37,19 @@ Route::middleware('guest')->prefix('auth')->controller(RegisterController::class
     Route::post('login', 'login');
     Route::post('forget','forget');
     Route::post('reset','reset');
-
-    Route::post('users', 'login')->name('index');
-
-
 });
-
-/** -----------Users --------------------- */
+/*** -----------Users ---------------------
 Route::middleware('auth:sanctum')->group(function() {
     Route::get('/users',[RegisterController::class,'index'])->name('index');
 });
-
+*/
 Route::middleware('auth:sanctum')->controller(RegisterController::class)->group(function() {
     Route::get('/users','index')->name('index');
     Route::post('logout', 'logout');
-
-
+    Route::post('/users/updade_profile','updade_profile');
+    Route::post('/users/getprofile','profile');
+    Route::delete('/users/delete','delete');
 });
-
-
 /**dentist */
 Route::middleware('guest')->prefix('auth')->controller(dentistregistercontroller::class)->group(function()
 {
@@ -63,10 +57,7 @@ Route::middleware('guest')->prefix('auth')->controller(dentistregistercontroller
     Route::post('dentistlogin', 'login');
     Route::post('dentistforget','forget');
     Route::post('dentistreset','reset');
-
     Route::post('dentists', 'login')->name('index');
-
-
 });
 
 Route::middleware('auth:sanctum')->group(function() {

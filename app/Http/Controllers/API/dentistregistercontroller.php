@@ -30,7 +30,7 @@ class dentistregistercontroller extends Controller
     {
 
 
-        /*
+
         $validator = Validator::make($request->all(), [
 
             'firstname'  => ['required', 'string', 'max:255'],
@@ -42,8 +42,8 @@ class dentistregistercontroller extends Controller
             'covernate' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string', 'max:255'],
             'youraddress'=> ['required', 'string', 'max:255'],
-           // 'personalphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-           // 'syndicatedphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'personalphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'syndicatedphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
 
 
           //  'day'=>['required', 'string','max:255'],
@@ -53,7 +53,7 @@ class dentistregistercontroller extends Controller
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        */
+
 
         $rules = [
             'starthour' => ['required', 'date_format:H:i'],
@@ -112,7 +112,7 @@ class dentistregistercontroller extends Controller
             'region' =>$request->region,
             'youraddress'=> $request->youraddress,
             'personalphoto'=>$personimage ,
-            'syndicatedphoto'=> $personimage,
+            'syndicatedphoto'=> $synticaed,
 
 
         ]);
