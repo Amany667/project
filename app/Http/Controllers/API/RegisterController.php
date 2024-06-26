@@ -1,13 +1,10 @@
 <?php
-
 namespace App\Http\Controllers\API;
 use File;
 use Validator;
 use Carbon\Carbon;
 use App\Models\User;
-
 use Illuminate\Http\Request;
-
 use Illuminate\Mail\Message;
 use App\Models\Passwordresets;
 use Illuminate\Http\JsonResponse;
@@ -19,11 +16,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgetPasswordRequest;
-
-
-
-
-
 class RegisterController extends Controller
 {
     public function index()
@@ -53,7 +45,7 @@ class RegisterController extends Controller
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
         $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-        $success['name'] =  $user->name;
+        $success['name'] =  $user->firstname;
         return $this->sendResponse($success, 'User register successfully.');
     }
     public function login(Request $request)
@@ -90,7 +82,7 @@ class RegisterController extends Controller
         ];
         return response()->json($response, 200);
     }
-    public function sendError($error, $errorMessages = [], $code = 404)
+    public function sendError($error, $errorMessages = [], $code = 200)
     {
     	$response = [
 
@@ -105,7 +97,6 @@ class RegisterController extends Controller
 
 
     public function forget(ForgetPasswordRequest $request){
-
         $request->validate([
 
             'email' => ['required',  'email'],
@@ -135,7 +126,7 @@ class RegisterController extends Controller
                 'token' => $resetpasswordtoken,
             ]);
         }
-       dump('http://127.0.0.1:8000/api/auth/forget',$resetpasswordtoken);
+    //   dump('http://127.0.0.1:8000/api/auth/forget',$resetpasswordtoken);
      /*  $email=$request->input('email');
        Mail::send('forgetpassword', ['token'=>$resetpasswordtoken], function ($message) use($email) {
            $message->subject('reset uour password');
@@ -143,7 +134,7 @@ class RegisterController extends Controller
 
        });
        */
-        return new JsonResponse(['message'=>" a code has been sent to your email address"]);
+        return new JsonResponse(['message'=>" a code has been sent to your email address","reset token"=>$resetpasswordtoken]);
     }
     public function reset(ResetPasswordRequest $request){
         $attribute=$request->validated();
@@ -243,16 +234,11 @@ class RegisterController extends Controller
         }
     }
     public function delete(Request $request){
-
         $user = $request->user();
         $oldpath= $user->profileimage;
-
-
-
             if($oldpath != null){
                 Storage::delete($oldpath);
             }
-
             auth()->user()->tokens()->delete();
             $user->delete();
 
@@ -261,6 +247,44 @@ class RegisterController extends Controller
                 'status'=>'sucess','data'=>$user
             ],200);
     }
+
+    public function updade_password(Request $request){
+
+        $validator = Validator::make($request->all(), [
+
+            'oldpassword' => ['required'],
+            'password' => 'required',
+
+
+        ]);
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = $request->user();
+        if($request->oldpassword != $user->confirm_password ){
+            return response()->json([
+                "message"=>'old password error'
+            ],404);
+
+        }
+        $request->validate([
+            'confirm_password' => 'required|same:password',
+        ]);
+
+
+        $user->password = bcrypt($request['password']);
+        $user->confirm_password =$request->confirm_password;
+
+       $user->save();
+
+
+             return response()->json([
+                "message"=>'update password successfully'
+            ],200);
+
+    }
 }
+
 
 

@@ -28,9 +28,6 @@ class dentistregistercontroller extends Controller
 
     public function register(Request $request)
     {
-
-
-
         $validator = Validator::make($request->all(), [
 
             'firstname'  => ['required', 'string', 'max:255'],
@@ -41,20 +38,15 @@ class dentistregistercontroller extends Controller
             'confirmpassword' => 'required|same:password',
             'covernate' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string', 'max:255'],
-            'youraddress'=> ['required', 'string', 'max:255'],
-            'personalphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'syndicatedphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-
-
-          //  'day'=>['required', 'string','max:255'],
+            'youraddress'=> ['string', 'max:255'],
+           // 'personalphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+           // 'syndicatedphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
-
-
-
+        /*
         $rules = [
             'starthour' => ['required', 'date_format:H:i'],
             'endhour' => 'date_format:H:i|after:starthour',
@@ -69,26 +61,10 @@ class dentistregistercontroller extends Controller
                 return response()->json(['error' => $validator->errors()], 400);
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
         /*
         $input = $request->all();
         $input['password'] = bcrypt($input['password']);
         $user = Dentist::create($input);
-
-
-
           //  $request = json_decode($request->getContent());
             $image = $request->personalphoto;  // your base64 encoded
             $image = Str::replace('data:image/png;base64,', '', $image);
@@ -97,10 +73,8 @@ class dentistregistercontroller extends Controller
             \File::put(base_path(). '\public\storage\\' . $personimage, base64_decode($image,true));
 */
 
-
-        $personimage=Str::random(32).".".$request->personalphoto->getClientOriginalExtension();
-      $synticaed=Str::random(32).".".$request->syndicatedphoto->getClientOriginalExtension();
-
+      //  $personimage=Str::random(32).".".$request->personalphoto->getClientOriginalExtension();
+     // $synticaed=Str::random(32).".".$request->syndicatedphoto->getClientOriginalExtension();
         $user= Dentist::create([
             'firstname'  => $request->firstname,
             'secondname' => $request->secondname,
@@ -111,11 +85,10 @@ class dentistregistercontroller extends Controller
             'covernate' => $request->covernate,
             'region' =>$request->region,
             'youraddress'=> $request->youraddress,
-            'personalphoto'=>$personimage ,
-            'syndicatedphoto'=> $synticaed,
-
-
+          //  'personalphoto'=>$personimage ,
+          //  'syndicatedphoto'=> $synticaed,
         ]);
+        /*
         $Appointments = json_decode($request->input("Appointments"),true);
         foreach($Appointments as $day=>$time)
         {
@@ -125,8 +98,6 @@ class dentistregistercontroller extends Controller
                 'starhour'=>$time["starthour"],
                 'endhour'=> $time["endhour"],
             ]);
-
-
         }
         /*
        Appointment::create([
@@ -134,20 +105,12 @@ class dentistregistercontroller extends Controller
           'day'=> $request->day,
          'starhour'=>$request->starhour,
           'endhour'=> $request->endhour,
-
        ]);
        */
-
-
-
-
-
-        Storage::disk('public')->put($personimage,file_get_contents($request->personalphoto));
-        Storage::disk('public')->put($synticaed,file_get_contents($request->syndicatedphoto));
-
-        $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-        $success['name'] =  $user->firstname ;
-
+      //  Storage::disk('public')->put($personimage,file_get_contents($request->personalphoto));
+      //  Storage::disk('public')->put($synticaed,file_get_contents($request->syndicatedphoto));
+        $success['token'] = $user->createToken('MyApp')->plainTextToken;
+        $success['name'] = $user->firstname ;
         return $this->sendResponse($success, 'User register successfully.');
     }
 
@@ -281,19 +244,210 @@ class dentistregistercontroller extends Controller
         $user->save();
         $user->tokens()->delete();
        $resetrequest->delete();
-
-
-
         $token = $user->createToken('authToken')->plainTextToken;
-
-
-
-
         return response([
             'message'=>'password reset success',
             'status'=>'password reset request'
         ],201);
 
     }
+    public function profile (Request $request){
+        $user = $request->user();
+        $appoin=Appointment::where('id-den',$user->dentist_id)->get();
+        $formattedData = [];
+        $dataArray = json_decode($appoin, true);
+        $formattedData = [];
+        foreach ($dataArray as $entry) {
+            $formattedData[$entry['day']] = [
+                'starthour' => date('H:i', strtotime($entry['starhour'])),
+                'endhour' => date('H:i', strtotime($entry['endhour']))
+            ];
+        }
+        return response()->json([$user,$formattedData], 200);
+            return response()->json([$user,$formattedJsonData],200);
+    }
 
+
+    public function updade_profile(request $request){
+        $validator = Validator::make($request->all(), [
+            'firstname'  => ['required', 'string', 'max:255'],
+            'secondname' => ['required', 'string', 'max:255'],
+            'password' => 'required',
+            'confirmpassword' => 'required|same:password',
+            'covernate' => ['required', 'string', 'max:255'],
+            'region' => ['required', 'string', 'max:255'],
+            'youraddress'=> ['required', 'string', 'max:255'],
+            'personalphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'syndicatedphoto'=> ['required', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+        $rules = [
+            'starthour' => ['required', 'date_format:H:i'],
+            'endhour' => 'date_format:H:i|after:starthour',
+            'day' => 'required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
+
+        ];
+       $Appointments = json_decode($request->input("Appointments"),true);
+        foreach ( $Appointments as $day => $time){
+           $time['day'] = $day;
+            $validator = Validator::make($time, $rules);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 400);
+            }
+        }
+
+        $user = $request->user();
+        if($request->email != $user->email ){
+            $request->validate([
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:dentists'],
+            ]);
+        }
+        if( $request->phonenumber != $user->phonenumber ){
+            $request->validate([
+                'phonenumber'=>['required','regex:/^01[0125][0-9]{8}$/','unique:dentists'],
+            ]);
+        }
+
+        $oldpath= $user->personalphoto;
+        $oldpathsyc=$user->syndicatedphoto;
+        if($request->hasFile('personalphoto')){
+            $storage=Storage::disk('public');
+            $path = Str::random(32).".".$request->personalphoto->getClientOriginalExtension();
+            $storage->put($path,file_get_contents($request->personalphoto));
+            $user->personalphoto=$path;
+        }
+        if($request->hasFile('syndicatedphoto')){
+            $storage=Storage::disk('public');
+            $path = Str::random(32).".".$request->syndicatedphoto->getClientOriginalExtension();
+            $storage->put($path,file_get_contents($request->syndicatedphoto));
+            $user->syndicatedphoto=$path;
+        }
+        $user->firstname = $request->firstname;
+        $user->secondname=$request->secondname;
+        $user->phonenumber=$request->phonenumber;
+        $user->email=$request->email;
+        $user->covernate=$request->covernate;
+        $user->region = $request->region;
+        $user->password = bcrypt($request['password']);
+        $user->confirmpassword =$request->confirmpassword;
+
+        if($user->save()){
+            if($oldpathsyc != null){
+                if($oldpathsyc != $user->syndicatedphoto){
+                    if($storage->exists($user->syndicatedphoto)){
+                        $storage->delete($oldpathsyc);
+                    }
+
+                }
+            }
+            if($oldpath != null){
+                if($oldpath != $user->personalphoto){
+                    if($storage->exists($user->personalphoto)){
+                        $storage->delete($oldpath);
+                    }
+
+                }
+            }
+         $appoin=Appointment::where('id-den',$user->dentist_id)->get();
+       $dataArray = json_decode($appoin, true);
+           $days = [];
+           foreach ($dataArray as $item) {
+               $days[] = $item['day'];
+           }
+
+       $Appointments = json_decode($request->input("Appointments"), true);
+           $i=0;
+       foreach ($Appointments as $day => $time) {
+
+         /*   if($days[$i] == $day[i]){
+
+
+            }
+            */
+           Appointment::where('id-den', $user->dentist_id)
+               ->where('day', $days[$i] )
+               ->update([
+                    'day'=>$day,
+                   'starhour' => $time["starthour"],
+                   'endhour' => $time["endhour"],
+               ]);
+               $i++;
+       }
+             return response()->json([
+                "message"=>'update successfully',$user
+            ],200);
+        }else{
+
+            return response()->json([
+                "message"=>'some error occured, please try again'
+            ],404);
+
+        }
+    }
+
+
+    public function delete_account(Request $request ){
+        $user = $request->user();
+        $oldpath= $user->personalphoto;
+        $oldpathsy=$user->syndicatedphoto;
+        $storage=Storage::disk('public');
+        if($oldpath != null){
+        if($storage->exists($user->personalphoto) ){
+            $storage->delete($oldpath);
+        }
+    }
+    if($oldpathsy != null){
+        if($storage->exists($user->syndicatedphoto) ){
+            $storage->delete($oldpathsy);
+        }
+    }
+        Appointment::where('id-den',$user->dentist_id)->delete();
+          $user->delete();
+
+
+            return response([
+                'message'=>'delete sucess',
+                'status'=>'sucess','data'=>$user
+            ],200);
+
+    }
+    public function updade_password(Request $request){
+
+        $validator = Validator::make($request->all(), [
+
+            'oldpassword' => ['required'],
+            'password' => 'required',
+
+
+        ]);
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = $request->user();
+        if($request->oldpassword != $user->confirmpassword ){
+            return response()->json([
+                "message"=>'old password error'
+            ],404);
+
+        }
+        $request->validate([
+            'confirm_password' => 'required|same:password',
+        ]);
+
+
+        $user->password = bcrypt($request['password']);
+        $user->confirmpassword =$request->confirm_password;
+
+       $user->save();
+
+
+             return response()->json([
+                "message"=>'update password successfully'
+            ],200);
+
+    }
 }

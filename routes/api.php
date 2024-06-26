@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\ChatController;
+use App\Http\Controllers\API\Homecontroller;
 use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\dentistregistercontroller;
 
@@ -47,7 +49,9 @@ Route::middleware('auth:sanctum')->controller(RegisterController::class)->group(
     Route::get('/users','index')->name('index');
     Route::post('logout', 'logout');
     Route::post('/users/updade_profile','updade_profile');
+    Route::post('/users/updade_password','updade_password');
     Route::post('/users/getprofile','profile');
+
     Route::delete('/users/delete','delete');
 });
 /**dentist */
@@ -57,7 +61,7 @@ Route::middleware('guest')->prefix('auth')->controller(dentistregistercontroller
     Route::post('dentistlogin', 'login');
     Route::post('dentistforget','forget');
     Route::post('dentistreset','reset');
-    Route::post('dentists', 'login')->name('index');
+
 });
 
 Route::middleware('auth:sanctum')->group(function() {
@@ -67,6 +71,27 @@ Route::middleware('auth:sanctum')->group(function() {
 Route::middleware('auth:sanctum')->controller(dentistregistercontroller::class)->group(function() {
     Route::get('/dentists','index')->name('index');
     Route::post('dentistlogout', 'logout');
+    Route::post('/dentists/getprofile','profile');
+    Route::post('/dentists/update_profile','updade_profile');
+    Route::delete('/dentists/delete_account','delete_account');
+    Route::post('/dentists/updade_password','updade_password');
 
 
 });
+Route::middleware('auth:sanctum')->controller(ChatController::class)->group(function() {
+   Route::post('/chatuser','create_user');
+   Route::post('/chatdoctor','create_doctor');
+   Route::get('/chat','index');
+   Route::post('/chat/{id}/send','sendmessage');
+   Route::get('/chat/{id}/message','getmessage');
+
+
+});
+Route::middleware('auth:sanctum')->controller(Homecontroller::class)->group(function() {
+    Route::get('/showimage','showimage');
+    Route::get('/search doctor','showdoctorwithname');
+    Route::get('/showdoctorrate','showdentistrate');
+    Route::post('/add/ratedoctor','addrate');
+    Route::post('/add/reserv','bookappointment');
+
+ });
